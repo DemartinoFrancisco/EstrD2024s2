@@ -67,9 +67,7 @@ numeroDelDiaDeLaSemana Sabado = 6
 numeroDelDiaDeLaSemana Domingo = 7
 
 vieneDespues :: DiaDeSemana -> DiaDeSemana -> Bool
-vieneDespues x y = if(numeroDelDiaDeLaSemana x > numeroDelDiaDeLaSemana y)
-                    then True
-                    else False
+vieneDespues x y = numeroDelDiaDeLaSemana x > numeroDelDiaDeLaSemana y
 
 estaEnElMedio :: DiaDeSemana -> Bool
 estaEnElMedio Lunes = False
@@ -81,16 +79,16 @@ negar True = False
 negar False = True
 
 implica :: Bool -> Bool -> Bool
-implica True False = False
-implica _ _ = True
+implica True v = v
+implica False _ = True
 
 yTambien :: Bool -> Bool -> Bool
-yTambien True True = True
-yTambien _ _ = False
+yTambien True v = v
+yTambien False _ = False
 
 oBien :: Bool -> Bool -> Bool
-oBien False False = False
-oBien _ _ = True
+oBien True _ = True
+oBien _ v = v
 
 -- EJERCICIOS REGISTROS
 
@@ -113,47 +111,62 @@ esMayorQueLaOtra :: Persona -> Persona -> Bool
 esMayorQueLaOtra (P n e) (P n2 e2) = e > e2
 
 laQueEsMayor :: Persona -> Persona -> Persona
-laQueEsMayor (P n e) (P n2 e2) = if(esMayorQueLaOtra (P n e) (P n2 e2))
-                                    then P n e
-                                    else P n2 e2
+laQueEsMayor p1 p2 = if esMayorQueLaOtra p1 p2
+                                    then p1
+                                    else p2
 
 data TipoDePokemon = Agua | Fuego | Planta
+    deriving Show
 
 data Pokemon = Po TipoDePokemon Int
 --                              porcentaje de energia
+    deriving Show
 
 data Entrenador = E String Pokemon Pokemon
 --                  Nombre
+    deriving Show
 
 superaA :: Pokemon -> Pokemon -> Bool
-superaA (Po Agua _) (Po Fuego _) = True
-superaA (Po Fuego _) (Po Planta _) = True
-superaA (Po Planta _) (Po Agua _) = True
-superaA _ _ = False
+superaA (Po t1 _) (Po t2 _) = esteTipoDePokemon_SuperaAEste_ t1 t2
+
+esteTipoDePokemon_SuperaAEste_ :: TipoDePokemon -> TipoDePokemon -> Bool
+esteTipoDePokemon_SuperaAEste_ Agua Fuego = True
+esteTipoDePokemon_SuperaAEste_ Fuego Planta = True
+esteTipoDePokemon_SuperaAEste_ Planta Agua = True
+esteTipoDePokemon_SuperaAEste_ _ _ = False
 
 cantidadDePokemonDe :: TipoDePokemon -> Entrenador -> Int
 cantidadDePokemonDe x (E _ p1  p2) = siLosTiposSonIgualesSuma1 x (elPokemonEsDeTipo p1) + siLosTiposSonIgualesSuma1 x (elPokemonEsDeTipo p2)
 
 siLosTiposSonIgualesSuma1 :: TipoDePokemon -> TipoDePokemon -> Int
-siLosTiposSonIgualesSuma1 Fuego Fuego = 1
-siLosTiposSonIgualesSuma1 Agua Agua = 1
-siLosTiposSonIgualesSuma1 Planta Planta = 1
-siLosTiposSonIgualesSuma1 _ _ = 0
+siLosTiposSonIgualesSuma1 x y = if sonElMismoTipoDePokemon x y
+                                  then 1
+                                  else 0
+
+sonElMismoTipoDePokemon :: TipoDePokemon -> TipoDePokemon -> Bool
+sonElMismoTipoDePokemon Fuego Fuego = True
+sonElMismoTipoDePokemon Agua Agua = True
+sonElMismoTipoDePokemon Planta Planta = True
+sonElMismoTipoDePokemon _ _ = False
 
 elPokemonEsDeTipo :: Pokemon -> TipoDePokemon
 elPokemonEsDeTipo (Po x _) = x
 
+
 juntarPokemon :: (Entrenador,Entrenador) -> [Pokemon]
-juntarPokemon ((E _ x y),(E _ n m)) = x:y:n:m:[]
+juntarPokemon (e1, e2) = pokemonesDe e1 ++ pokemonesDe e2
+
+pokemonesDe :: Entrenador -> [Pokemon]
+pokemonesDe (E _ x y) = [x,y]
 
 ash :: Entrenador
 ash = (E "Ash" pikachu charmander)
 
 pikachu :: Pokemon 
-pikachu = (Po Planta 100)
+pikachu = (Po Planta 100) 
 
 charmander :: Pokemon
-charmander = (Po Planta 10)
+charmander = (Po Planta 10)                                 
 
 medina :: Entrenador
 medina = (E "Medina" pikachu charmander)
@@ -179,14 +192,17 @@ estaVacia [] = True
 estaVacia _ = False
 
 elPrimero :: [a] -> a
+--PRECONDICIONES: No puede recibir una lista vacia.
 elPrimero (x:_) = x
 elPrimero [] = error "No se puede pedir el primer elemento de una lista vacia"
 
 sinElPrimero :: [a] -> [a]
+--PRECONDICIONES: No puede recibir una lista vacia.
 sinElPrimero (x : xs) = xs
 sinElPrimero [] = error "No se puede pedir el resto a una lista vacia"
 
 splitHead :: [a] -> (a, [a])
+--PRECONDICIONES: No puede recibir una lista vacia.
 splitHead (x:xs) = (x,xs)
 splitHead [] = error "No se puede pedir un splitHead a una lista vacia"
 
