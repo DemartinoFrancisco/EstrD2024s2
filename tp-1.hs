@@ -136,12 +136,11 @@ esteTipoDePokemon_SuperaAEste_ Planta Agua = True
 esteTipoDePokemon_SuperaAEste_ _ _ = False
 
 cantidadDePokemonDe :: TipoDePokemon -> Entrenador -> Int
-cantidadDePokemonDe x (E _ p1  p2) = siLosTiposSonIgualesSuma1 x (elPokemonEsDeTipo p1) + siLosTiposSonIgualesSuma1 x (elPokemonEsDeTipo p2)
+cantidadDePokemonDe x (E _ p1  p2) = (unoSiCeroSino (pokemonEsDeTipo p1 x)) + (unoSiCeroSino (pokemonEsDeTipo p2 x))
 
-siLosTiposSonIgualesSuma1 :: TipoDePokemon -> TipoDePokemon -> Int
-siLosTiposSonIgualesSuma1 x y = if sonElMismoTipoDePokemon x y
-                                  then 1
-                                  else 0
+unoSiCeroSino :: Bool -> Int
+unoSiCeroSino True = 1
+unoSiCeroSino _ = 0
 
 sonElMismoTipoDePokemon :: TipoDePokemon -> TipoDePokemon -> Bool
 sonElMismoTipoDePokemon Fuego Fuego = True
@@ -149,9 +148,11 @@ sonElMismoTipoDePokemon Agua Agua = True
 sonElMismoTipoDePokemon Planta Planta = True
 sonElMismoTipoDePokemon _ _ = False
 
-elPokemonEsDeTipo :: Pokemon -> TipoDePokemon
-elPokemonEsDeTipo (Po x _) = x
+pokemonEsDeTipo :: Pokemon -> TipoDePokemon -> Bool
+pokemonEsDeTipo p y = sonElMismoTipoDePokemon (tipoDePokemon p) y
 
+tipoDePokemon :: Pokemon -> TipoDePokemon
+tipoDePokemon (Po x _) = x
 
 juntarPokemon :: (Entrenador,Entrenador) -> [Pokemon]
 juntarPokemon (e1, e2) = pokemonesDe e1 ++ pokemonesDe e2
