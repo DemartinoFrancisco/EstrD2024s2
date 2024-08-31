@@ -11,8 +11,8 @@ divisionYResto x y = (div x y ,  mod x y)
 
 maxDelPar :: (Int, Int) -> Int
 maxDelPar (x,y) = if(x>y)
-                   then x
-                   else y
+                    then x
+                    else y
 
 {- PUNTO 1.2
 
