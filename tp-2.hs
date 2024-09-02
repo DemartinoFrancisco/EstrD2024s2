@@ -41,7 +41,7 @@ aplanar (x:xs) = x ++ aplanar xs
 
 pertenece :: Eq a => a -> [a] -> Bool
 pertenece _ [] = False
-pertenece t (x:xs) = t == x || pertenece t xs
+pertenece t (x:xs) = (t == x) || pertenece t xs
 
 -- PUNTO 8:
 
@@ -92,7 +92,7 @@ reversa (x:xs) = reversa xs ++ [x]
 zipMaximos :: [Int] -> [Int] -> [Int]
 zipMaximos []     ys     = ys 
 zipMaximos xs     []     = xs
-zipMaximos (x:xs) (y:ys) = [maxDelPar (x,y)] ++ zipMaximos xs ys
+zipMaximos (x:xs) (y:ys) = maxDelPar (x,y) : zipMaximos xs ys
 
 maxDelPar :: (Int, Int) -> Int
 maxDelPar (x,y) = if(x>y)
@@ -103,14 +103,8 @@ maxDelPar (x,y) = if(x>y)
 
 elMinimo :: Ord a => [a] -> a
 --PRECOND: La lista no debe ser vacia
-elMinimo (x:[]) = x
-elMinimo (x:xs) = elMasPequenioEntre_Y_ x (elMinimo xs)
-elMinimo []     = error "No podes pedir el minimo si la lista es vacia"
-
-elMasPequenioEntre_Y_ :: Ord a => a -> a -> a
-elMasPequenioEntre_Y_ x y = if x<y
-                                then x
-                                else y 
+elMinimo [x] = x
+elMinimo (x:xs) = min x (elMinimo xs)
 
 -- RECURSION SOBRE NUMEROS:
 
@@ -123,8 +117,9 @@ factorial n = n * factorial (n-1)
 -- PUNTO 2:
 
 cuentaRegresiva :: Int -> [Int]
-cuentaRegresiva 0 = []
-cuentaRegresiva n = n : cuentaRegresiva (n-1)
+cuentaRegresiva n = if n>=1
+                        then n : cuentaRegresiva (n-1)
+                        else []
 
 --PUNTO 3:
 
@@ -154,6 +149,9 @@ data Persona = P String Int
 --               Nombre Edad
     deriving Show
 
+edad :: Persona -> Int
+edad (P _ e) = e
+
 francisco :: Persona 
 francisco = P "Francisco" 21
 
@@ -166,8 +164,10 @@ elizabeth = P "Elizabeth" 52
 -- PUNTO 1.a:
 
 mayoresA :: Int -> [Persona] -> [Persona]
-mayoresA n []             = []
-mayoresA n ((P nom e):xs) = listaConElemento_Si_ (P nom e) (e>n) ++ mayoresA n xs 
+mayoresA n []     = []
+mayoresA n (p:ps) = if edad p > n
+                        then p : mayoresA n ps
+                        else mayoresA n ps
 
 listaConElemento_Si_ :: a -> Bool -> [a]
 listaConElemento_Si_ x True  = [x]
@@ -177,23 +177,20 @@ listaConElemento_Si_ x False = []
 
 promedioEdad :: [Persona] -> Int
 -- PRECOND: La lista no puede ser vacia
-promedioEdad (x:xs) = div (sumarTodasLasEdadesDe (x:xs)) (longitud (x:xs))
+promedioEdad ps = div (sumarTodasLasEdadesDe ps) (longitud ps)
 
 sumarTodasLasEdadesDe :: [Persona] -> Int
 sumarTodasLasEdadesDe []     = 0
-sumarTodasLasEdadesDe ((P n e):xs) = e + sumarTodasLasEdadesDe xs
+sumarTodasLasEdadesDe (p:ps) = edad p + sumarTodasLasEdadesDe ps
 
 -- PUNTO 1.c:
 
 elMasViejo :: [Persona] -> Persona
 -- PRECOND: La lista no puede ser vacia
-elMasViejo [x]      = x
-elMasViejo (x1:x2:xs) = elMasViejo ((devuelvoElMasViejoEntre_Y_ x1 x2) : xs)
-
-devuelvoElMasViejoEntre_Y_ :: Persona -> Persona -> Persona
-devuelvoElMasViejoEntre_Y_ (P n1 e1) (P n2 e2) = if e1>e2
-                                                    then (P n1 e1)
-                                                    else (P n2 e2)
+elMasViejo [p]        = p
+elMasViejo (p:ps) = if (edad p) > (edad (elMasViejo ps))
+                        then p 
+                        else elMasViejo ps
 
 --PUNTO 2:
 
@@ -211,6 +208,9 @@ mon :: Pokemon
 mon = Po Fuego 11
 
 data Entrenador = E String [Pokemon]
+
+pokemonesDe :: Entrenador -> [Pokemon]
+pokemonesDe (E _ pks) = pks
 
 ash :: Entrenador
 ash = E "Ash" [pikachu, garmander]
@@ -241,14 +241,38 @@ sonElMismoTipoDePokemon _ _ = False
 -- PUNTO 2.c:
 
 cuantosDeTipo_De_LeGananATodosLosDe_ :: TipoDePokemon -> Entrenador -> Entrenador -> Int
-cuantosDeTipo_De_LeGananATodosLosDe_ Agua e1 e2   = cantPokemonDe Fuego e2
-cuantosDeTipo_De_LeGananATodosLosDe_ Fuego e1 e2  = cantPokemonDe Planta e2
-cuantosDeTipo_De_LeGananATodosLosDe_ Planta e1 e2 = cantPokemonDe Agua e2
+cuantosDeTipo_De_LeGananATodosLosDe_ tipo (E _ pokemons1) (E _ pokemons2) = cantPokemonesDeTipoQueLeGananATodos tipo pokemons1 pokemons2
+
+cantPokemonesDeTipoQueLeGananATodos :: TipoDePokemon -> [Pokemon] -> [Pokemon] -> Int
+cantPokemonesDeTipoQueLeGananATodos _ [] pokemons2 = 0
+cantPokemonesDeTipoQueLeGananATodos tipo (pokemon1: pokemones1) pokemones2 = if sonElMismoTipoDePokemon (tipoDePokemon pokemon1) tipo 
+                                                                                then unoSiCeroSino (venceATodos pokemon1 pokemones2) + cantPokemonesDeTipoQueLeGananATodos tipo pokemones1 pokemones2
+                                                                                else cantPokemonesDeTipoQueLeGananATodos tipo pokemones1 pokemones2
+
+venceATodos :: Pokemon -> [Pokemon] -> Bool
+venceATodos _ [] = True
+venceATodos pokemon1 (pokemon2 : pokemones2) = superaA pokemon1 pokemon2 && venceATodos pokemon1 pokemones2
+
+superaA :: Pokemon -> Pokemon -> Bool
+superaA (Po t1 _) (Po t2 _) = esteTipoDePokemon_SuperaAEste_ t1 t2
+
+esteTipoDePokemon_SuperaAEste_ :: TipoDePokemon -> TipoDePokemon -> Bool
+esteTipoDePokemon_SuperaAEste_ Agua Fuego = True
+esteTipoDePokemon_SuperaAEste_ Fuego Planta = True
+esteTipoDePokemon_SuperaAEste_ Planta Agua = True
+esteTipoDePokemon_SuperaAEste_ _ _ = False
 
 -- PUNTO 2.d:
 
 esMaestroPokemon :: Entrenador -> Bool
-esMaestroPokemon e = cantPokemonDe Fuego e > 0 && cantPokemonDe Agua e > 0 && cantPokemonDe Planta e > 0
+esMaestroPokemon e = tienePokemonesDeTipo e Fuego &&  tienePokemonesDeTipo e Agua &&  tienePokemonesDeTipo e Planta
+
+tienePokemonesDeTipo :: Entrenador -> TipoDePokemon -> Bool
+tienePokemonesDeTipo e t = algunPokemonEsDeTipo (pokemonesDe e) t
+
+algunPokemonEsDeTipo :: [Pokemon] -> TipoDePokemon -> Bool
+algunPokemonEsDeTipo []      _ = False
+algunPokemonEsDeTipo (p:pks) t = sonElMismoTipoDePokemon (tipoDePokemon p) t || algunPokemonEsDeTipo pks t
 
 -- PUNTO 3:
 
@@ -285,27 +309,17 @@ empresa1 = ConsEmpresa [rol1, rol2, rol3]
 -- PUNTO 3.a:
 
 proyectos :: Empresa -> [Proyecto]
-proyectos (ConsEmpresa rs) = proyectosSinRepetirDe (proyectosDeEstaLista rs)
+proyectos (ConsEmpresa rs) = proyectosEnRoles rs
 
-proyectosDeEstaLista :: [Rol] -> [Proyecto]
-proyectosDeEstaLista []                    = []
-proyectosDeEstaLista ((Developer _ p):rs)  = p : proyectosDeEstaLista rs
-proyectosDeEstaLista ((Management _ p):rs) = p : proyectosDeEstaLista rs
+proyectosEnRoles :: [Rol] -> [Proyecto]
+proyectosEnRoles []     = []
+proyectosEnRoles (r:rs) = if pertenece (proyectoDelRol r) (proyectosEnRoles rs)
+                            then proyectosEnRoles rs
+                            else proyectoDelRol r : proyectosEnRoles rs
 
-proyectosSinRepetirDe :: [Proyecto] -> [Proyecto]
-proyectosSinRepetirDe []        = []
-proyectosSinRepetirDe (x:xs)    = listaConElemento_Si_ x (not (listaContieneA (nombresProyectos xs) (nombreProyecto x))) ++ proyectosSinRepetirDe xs
-
-nombreProyecto :: Proyecto -> String
-nombreProyecto (ConsProyecto n) = n
-
-nombresProyectos :: [Proyecto] -> [String] 
-nombresProyectos []                    = []
-nombresProyectos ((ConsProyecto n):xs) = n : nombresProyectos xs
-
-listaContieneA :: Eq a => [a] -> a -> Bool
-listaContieneA []     _ = False
-listaContieneA (x:xs) y = x == y || listaContieneA xs y
+proyectoDelRol :: Rol -> Proyecto
+proyectoDelRol (Developer _ p)  = p
+proyectoDelRol (Management _ p) = p
 
 -- PUNTO 3.b:
 
@@ -321,8 +335,12 @@ listaDeDevsSeniorEn_QueEstanEnLosProyectos_ [] p     = 0
 listaDeDevsSeniorEn_QueEstanEnLosProyectos_ (x:xs) p = unoSiCeroSino (esSeniorYEstaEnAlgunProyecto_ x p) + listaDeDevsSeniorEn_QueEstanEnLosProyectos_ xs p
 
 esSeniorYEstaEnAlgunProyecto_ :: Rol -> [Proyecto] -> Bool
-esSeniorYEstaEnAlgunProyecto_ (Developer Senior p) ps  = listaContieneA (nombresProyectos ps) (nombreProyecto p)
-esSeniorYEstaEnAlgunProyecto_ _                    _   = False
+esSeniorYEstaEnAlgunProyecto_ r ps  = pertenece (proyectoDelRol r) ps && esSenior r
+
+esSenior :: Rol -> Bool
+esSenior (Developer Senior _)  = True
+esSenior (Management Senior _) = True
+esSenior _                     = False
 
 -- PUNTO 3.c:
 
@@ -339,18 +357,25 @@ cantEmpleadosQueTrabajanEnElproyecto (r:rs) p = unoSiCeroSino ( esteEmpleadoTrab
 
 esteEmpleadoTrabajaEnEsteProyecto :: Rol -> Proyecto -> Bool
 esteEmpleadoTrabajaEnEsteProyecto (Developer _ pe) p = nombreProyecto pe == nombreProyecto p
+esteEmpleadoTrabajaEnEsteProyecto (Management _ pe) p = nombreProyecto pe == nombreProyecto p
+
+nombreProyecto :: Proyecto -> String
+nombreProyecto (ConsProyecto n) = n
 
 -- PUNTO 3.d:
 
 asignadosPorProyecto :: Empresa -> [(Proyecto, Int)]
-asignadosPorProyecto e = asignadosPorProyectos (proyectosSinRepetirDeLaEmpresa e) e
+asignadosPorProyecto (ConsEmpresa rs) = cantRolesPorProyecto rs
 
-asignadosPorProyectos :: [Proyecto] -> Empresa -> [(Proyecto, Int)]
-asignadosPorProyectos []     e = []
-asignadosPorProyectos (p:ps) e = asignadosAProyecto p e : asignadosPorProyectos ps e
+cantRolesPorProyecto :: [Rol] -> [(Proyecto, Int)]
+cantRolesPorProyecto [] = []
+cantRolesPorProyecto (r:rs) = contarProyectoEn (proyectoDelRol r) (cantRolesPorProyecto rs)
 
-asignadosAProyecto :: Proyecto -> Empresa -> (Proyecto, Int)
-asignadosAProyecto p e = (p, cantQueTrabajanEn [p] e)
+contarProyectoEn :: Proyecto -> [(Proyecto,Int)] -> [(Proyecto,Int)]
+contarProyectoEn p []     = [(p,1)]
+contarProyectoEn p (y:ys) = if nombreProyecto p == (nombreProyecto (fst y))
+                                then (sumarUno y) : ys
+                                else y : contarProyectoEn p ys
 
-proyectosSinRepetirDeLaEmpresa :: Empresa -> [Proyecto]
-proyectosSinRepetirDeLaEmpresa (ConsEmpresa rs) = proyectosSinRepetirDe (proyectosDeEstaLista rs) 
+sumarUno :: (Proyecto, Int) -> (Proyecto, Int) 
+sumarUno (p,n) = (p,n+1)
