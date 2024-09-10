@@ -103,8 +103,10 @@ maxDelPar (x,y) = if(x>y)
 
 elMinimo :: Ord a => [a] -> a
 --PRECOND: La lista no debe ser vacia
-elMinimo [x] = x
-elMinimo (x:xs) = min x (elMinimo xs)
+elMinimo [x] = error "No puede ser lista vacia"
+elMinimo (x:xs) = if (esListaVacia xs)
+                    then x
+                    else min x (elMinimo xs)
 
 -- RECURSION SOBRE NUMEROS:
 
@@ -190,9 +192,12 @@ elMasViejo :: [Persona] -> Persona
 elMasViejo []        = error "No puede ser vacia"
 elMasViejo (p:ps)     = if (esListaVacia ps)
                             then p
-                            else if (edad p) > (edad (elMasViejo ps))
-                                then p 
-                                else elMasViejo ps
+                            else elMasViejoSabiendoQueNoEsVacia (p:ps)
+                                
+elMasViejoSabiendoQueNoEsVacia :: [Persona] -> Persona
+elMasViejoSabiendoQueNoEsVacia (p:ps) = if (edad p) > (edad (elMasViejo ps))
+                                            then p 
+                                            else elMasViejo ps
 
 esListaVacia :: [a] -> Bool
 esListaVacia []     = True
