@@ -187,10 +187,16 @@ sumarTodasLasEdadesDe (p:ps) = edad p + sumarTodasLasEdadesDe ps
 
 elMasViejo :: [Persona] -> Persona
 -- PRECOND: La lista no puede ser vacia
-elMasViejo [p]        = p
-elMasViejo (p:ps) = if (edad p) > (edad (elMasViejo ps))
-                        then p 
-                        else elMasViejo ps
+elMasViejo []        = error "No puede ser vacia"
+elMasViejo (p:ps)     = if (esListaVacia ps)
+                            then p
+                            else if (edad p) > (edad (elMasViejo ps))
+                                then p 
+                                else elMasViejo ps
+
+esListaVacia :: [a] -> Bool
+esListaVacia []     = True
+esListaVacia (x:xs) = False
 
 --PUNTO 2:
 
