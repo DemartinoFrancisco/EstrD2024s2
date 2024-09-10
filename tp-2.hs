@@ -313,13 +313,20 @@ proyectos (ConsEmpresa rs) = proyectosEnRoles rs
 
 proyectosEnRoles :: [Rol] -> [Proyecto]
 proyectosEnRoles []     = []
-proyectosEnRoles (r:rs) = if pertenece (proyectoDelRol r) (proyectosEnRoles rs)
+proyectosEnRoles (r:rs) = if perteneceAProyectos (proyectoDelRol r) (proyectosEnRoles rs)
                             then proyectosEnRoles rs
                             else proyectoDelRol r : proyectosEnRoles rs
 
 proyectoDelRol :: Rol -> Proyecto
 proyectoDelRol (Developer _ p)  = p
 proyectoDelRol (Management _ p) = p
+
+perteneceAProyectos :: Proyecto -> [Proyecto] -> Bool
+perteneceAProyectos pr []     = False
+perteneceAProyectos pr (p:ps) = sonElMismoProyecto pr p || perteneceAProyectos pr ps
+
+sonElMismoProyecto :: Proyecto -> Proyecto -> Bool
+sonElMismoProyecto (ConsProyecto s1) (ConsProyecto s2) = s1 == s2
 
 -- PUNTO 3.b:
 
@@ -335,12 +342,12 @@ listaDeDevsSeniorEn_QueEstanEnLosProyectos_ [] p     = 0
 listaDeDevsSeniorEn_QueEstanEnLosProyectos_ (x:xs) p = unoSiCeroSino (esSeniorYEstaEnAlgunProyecto_ x p) + listaDeDevsSeniorEn_QueEstanEnLosProyectos_ xs p
 
 esSeniorYEstaEnAlgunProyecto_ :: Rol -> [Proyecto] -> Bool
-esSeniorYEstaEnAlgunProyecto_ r ps  = pertenece (proyectoDelRol r) ps && esSenior r
+esSeniorYEstaEnAlgunProyecto_ (Developer sr p) ps  = perteneceAProyectos p ps && esSenior sr
+esSeniorYEstaEnAlgunProyecto_ (Management sr p) ps   = perteneceAProyectos p ps && esSenior sr
 
-esSenior :: Rol -> Bool
-esSenior (Developer Senior _)  = True
-esSenior (Management Senior _) = True
-esSenior _                     = False
+esSenior :: Seniority -> Bool
+esSenior Senior = True
+esSenior _      = False
 
 -- PUNTO 3.c:
 
