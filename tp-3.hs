@@ -1,4 +1,3 @@
-
 -- PUNTO 1.1:
 data Color = Azul | Rojo
     deriving Show
@@ -6,7 +5,7 @@ data Celda = Bolita Color Celda | CeldaVacia
     deriving Show
 
 celda1 :: Celda
-celda1 = Bolita Rojo (Bolita Rojo (Bolita Azul CeldaVacia))
+celda1 = Bolita Rojo (Bolita Rojo (Bolita Rojo CeldaVacia))
 
 celda2 :: Celda
 celda2 = Bolita Rojo CeldaVacia 
@@ -38,17 +37,9 @@ poner c celda = Bolita c celda
 
 sacar :: Color -> Celda -> Celda
 sacar c CeldaVacia     = CeldaVacia 
-sacar c celda          = siHayUnaBolitaColor_Sacarla c celda
-
-siHayUnaBolitaColor_Sacarla :: Color -> Celda -> Celda
-siHayUnaBolitaColor_Sacarla c celda = if (nroBolitas c celda > 0)
-                                        then sacarBolitaColor c celda
-                                        else celda
-    
-sacarBolitaColor :: Color -> Celda -> Celda
-sacarBolitaColor c (Bolita co ce) =  if sonDelMismoColor c co
-                                        then ce
-                                        else sacarBolitaColor c ce
+sacar c (Bolita co ce) = if sonDelMismoColor c co
+                            then ce
+                            else (Bolita co (sacar c ce))
 
 -- PUNTO 1.1.d:
 
@@ -67,7 +58,7 @@ camino1 :: Camino
 camino1 = Cofre objetos1 camino10
 
 camino10 :: Camino
-camino10 = Cofre objetos1 Fin
+camino10 = Cofre objetos1 camino4
 
 camino2 :: Camino
 camino2 = Nada camino3
@@ -76,7 +67,7 @@ camino3 :: Camino
 camino3 = Fin
 
 camino4 :: Camino
-camino4 = Cofre [Cacharro, Tesoro] camino1
+camino4 = Cofre [Cacharro, Tesoro] camino3
 
 objetos1 :: [Objeto] 
 objetos1 = [Cacharro, Cacharro, Tesoro, Tesoro]
@@ -123,12 +114,14 @@ algunObjetoAcaEsTesoro _               = False
 -- PUNTO 1.3.d:
 
 alMenosNTesoros :: Int -> Camino -> Bool
-alMenosNTesoros n ca = n <= cantidadDeTesorosEnCamino ca
+alMenosNTesoros n ca = cantidadDeTesorosVistosLlegaAN n ca >= n
 
-cantidadDeTesorosEnCamino :: Camino -> Int
-cantidadDeTesorosEnCamino Fin             = 0
-cantidadDeTesorosEnCamino (Nada ca)       = cantidadDeTesorosEnCamino ca
-cantidadDeTesorosEnCamino (Cofre objs ca) = cantidadDeTesorosAca objs + cantidadDeTesorosEnCamino ca
+cantidadDeTesorosVistosLlegaAN :: Int -> Camino -> Int
+cantidadDeTesorosVistosLlegaAN _ Fin             = 0
+cantidadDeTesorosVistosLlegaAN n (Nada ca)       = cantidadDeTesorosVistosLlegaAN n ca
+cantidadDeTesorosVistosLlegaAN n (Cofre objs ca) = if alMenosNTesoros n ca
+                                                        then cantidadDeTesorosVistosLlegaAN n ca
+                                                        else cantidadDeTesorosVistosLlegaAN n ca + cantidadDeTesorosAca objs
 
 cantidadDeTesorosAca :: [Objeto] -> Int
 cantidadDeTesorosAca []         = 0
@@ -137,18 +130,22 @@ cantidadDeTesorosAca (obj:objs) = unoSiCeroSino (esteObjetoEsTesoro obj) + canti
 -- PUNTO 1.3.e:
 
 cantTesorosEntre :: Int -> Int -> Camino -> Int
---PRECOND: m es mayor que n
+--PRECOND: m es igual o mayor a n
 cantTesorosEntre 0 m ca              = cantidadDeTesorosEnmPasos m ca
-cantTesorosEntre 1 m ca              = cantidadDeTesorosEnmPasos m ca
 cantTesorosEntre n m Fin             = 0
 cantTesorosEntre n m (Cofre objs ca) = cantTesorosEntre (n-1) (m-1) ca
 cantTesorosEntre n m (Nada ca)       = cantTesorosEntre (n-1) (m-1) ca
 
 cantidadDeTesorosEnmPasos :: Int -> Camino -> Int
-cantidadDeTesorosEnmPasos 0 _               = 0
+cantidadDeTesorosEnmPasos 0 ca              = cantidadDeTesorosEnEstePaso ca 
 cantidadDeTesorosEnmPasos n Fin             = 0
 cantidadDeTesorosEnmPasos n (Cofre objs ca) = cantidadDeTesorosAca objs + cantidadDeTesorosEnmPasos (n-1) ca
 cantidadDeTesorosEnmPasos n (Nada ca)       = cantidadDeTesorosEnmPasos (n-1) ca
+
+cantidadDeTesorosEnEstePaso :: Camino -> Int
+cantidadDeTesorosEnEstePaso Fin             = 0
+cantidadDeTesorosEnEstePaso (Nada ca)       = 0
+cantidadDeTesorosEnEstePaso (Cofre objs ca) = cantidadDeTesorosAca objs
 
 -- PUNTO 2.1:
 
@@ -162,7 +159,7 @@ treeNumero2 :: Tree Int
 treeNumero2 = NodeT 7 treeNumero3 treeNumero4
 
 treeNumero3 :: Tree Int
-treeNumero3 = NodeT 4 treeNumero4 EmptyT
+treeNumero3 = NodeT 4 treeNumero4 treeNumero4
 
 treeNumero4 :: Tree Int
 treeNumero4 = NodeT 5 EmptyT EmptyT
@@ -204,19 +201,19 @@ aparicionesT j (NodeT x t1 t2) = unoSiCeroSino (j == x) + aparicionesT j t1 + ap
 
 leaves :: Tree a -> [a]
 leaves EmptyT                  = []
-leaves (NodeT x EmptyT EmptyT) = [x]
-leaves (NodeT _ t1 t2)         = leaves t1 ++ leaves t2
+leaves (NodeT e t1 t2)         = devolverElementoSiSusHijosSonVacios (NodeT e t1 t2) ++ leaves t1 ++ leaves t2
+
+devolverElementoSiSusHijosSonVacios :: Tree a -> [a]
+devolverElementoSiSusHijosSonVacios (NodeT e EmptyT EmptyT) = [e]
+devolverElementoSiSusHijosSonVacios _                       = []
 
 -- PUNTO 2.1.7:
 
 heightT :: Tree a -> Int
 heightT EmptyT          = 0
-heightT (NodeT x t1 t2) = 1 + heightT (ramaMasLargaEntre t1 t2)
-
-ramaMasLargaEntre :: Tree a -> Tree a -> Tree a
-ramaMasLargaEntre r1 r2 = if (heightT r1 > heightT r2)
-                                then r1
-                                else r2
+heightT (NodeT x t1 t2) = if heightT t1 > heightT t2
+                            then 1 + heightT t1
+                            else 1 + heightT t2
 
 -- PUNTO 2.1.8:
 
@@ -244,7 +241,6 @@ listPerLevel EmptyT          = []
 listPerLevel (NodeT x t1 t2) = [[x]] ++ agruparPorNivel (listPerLevel t1) (listPerLevel t2)
 
 agruparPorNivel :: [[a]] -> [[a]] -> [[a]]
-agruparPorNivel []     []     = []
 agruparPorNivel xs     []     = xs
 agruparPorNivel []     ys     = ys
 agruparPorNivel (x:xs) (y:ys) = [x ++ y] ++ agruparPorNivel xs ys
@@ -313,27 +309,14 @@ eval (Neg ex)       = -eval(ex)
 -- PUNTO 2.2.2:
 
 simplificar :: ExpA -> ExpA
-simplificar (Valor n)      = (Valor n)
-simplificar (Sum ex1 ex2)  = siAlgunaExpresionEsCeroLoSimplifico ex1 ex2
-simplificar (Prod ex1 ex2) = simplificoLaMultiplicacionSiCorresponde ex1 ex2
-simplificar (Neg ex)       = siYaEsNegativoLoSimplifico ex
-
-siYaEsNegativoLoSimplifico :: ExpA -> ExpA
-siYaEsNegativoLoSimplifico e1 = if eval e1 < 0
-                                then (Valor (-(eval e1)))
-                                else (Valor (eval e1))
-
-siAlgunaExpresionEsCeroLoSimplifico :: ExpA -> ExpA -> ExpA
-siAlgunaExpresionEsCeroLoSimplifico e1 e2  = if (eval (e1) == 0 || eval (e2) == 0)
-                                                then (Valor 0)
-                                                else (Sum e1 e2)
-
-simplificoLaMultiplicacionSiCorresponde :: ExpA -> ExpA -> ExpA
-simplificoLaMultiplicacionSiCorresponde e1 e2 = if (eval (e1) == 0 || eval (e2) == 0)
-                                                    then (Valor 0)
-                                                    else if eval (e1) == 1
-                                                            then e1
-                                                            else if eval (e2) == 1
-                                                                then e2
-                                                                else (Prod e1 e2)
-
+simplificar (Sum (Valor 0) x)  = simplificar x 
+simplificar (Sum x (Valor 0))  = simplificar x
+simplificar (Prod (Valor 0) x) = Valor 0 
+simplificar (Prod x (Valor 0)) = Valor 0
+simplificar (Prod (Valor 1) x) = simplificar x
+simplificar (Prod x (Valor 1)) = simplificar x
+simplificar (Neg (Neg x) )     = simplificar x
+simplificar (Sum e1 e2)        = Sum  (simplificar e1) (simplificar e2)
+simplificar (Prod e1 e2)       = Prod (simplificar e1) (simplificar e2)
+simplificar (Neg e)            = Neg  (simplificar e)
+simplificar x                  = x
