@@ -386,7 +386,7 @@ asignadosPorProyecto :: Empresa -> [(Proyecto, Int)]
 asignadosPorProyecto (ConsEmpresa rs) = cantRolesPorProyecto rs
 
 cantRolesPorProyecto :: [Rol] -> [(Proyecto, Int)]
-cantRolesPorProyecto [] = []
+cantRolesPorProyecto []     = []
 cantRolesPorProyecto (r:rs) = contarProyectoEn (proyectoDelRol r) (cantRolesPorProyecto rs)
 
 contarProyectoEn :: Proyecto -> [(Proyecto,Int)] -> [(Proyecto,Int)]

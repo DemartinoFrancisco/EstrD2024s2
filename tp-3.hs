@@ -91,13 +91,11 @@ esteObjetoEsTesoro _      = False
 
 pasosHastaTesoro :: Camino -> Int
 -- PRECOND: Tiene que haber al menos 1 tesoro
-pasosHastaTesoro (Cofre objs ca) = sialgunObjetoEsTesoroDevuelvoCeroSinoSigoBuscando objs ca
-pasosHastaTesoro (Nada ca)       = 1 + pasosHastaTesoro ca
-
-sialgunObjetoEsTesoroDevuelvoCeroSinoSigoBuscando :: [Objeto] -> Camino -> Int
-sialgunObjetoEsTesoroDevuelvoCeroSinoSigoBuscando objs ca = if algunObjetoEsTesoro objs 
+pasosHastaTesoro (Cofre objs ca) = if algunObjetoEsTesoro objs 
                                                                 then 0
                                                                 else 1 + pasosHastaTesoro ca
+
+pasosHastaTesoro (Nada ca)       = 1 + pasosHastaTesoro ca
 
 -- PUNTO 1.2.c:
 
@@ -113,15 +111,12 @@ algunObjetoAcaEsTesoro _               = False
 
 -- PUNTO 1.3.d:
 
-alMenosNTesoros :: Int -> Camino -> Bool
-alMenosNTesoros n ca = cantidadDeTesorosVistosLlegaAN n ca >= n
-
-cantidadDeTesorosVistosLlegaAN :: Int -> Camino -> Int
-cantidadDeTesorosVistosLlegaAN _ Fin             = 0
-cantidadDeTesorosVistosLlegaAN n (Nada ca)       = cantidadDeTesorosVistosLlegaAN n ca
-cantidadDeTesorosVistosLlegaAN n (Cofre objs ca) = if alMenosNTesoros n ca
-                                                        then cantidadDeTesorosVistosLlegaAN n ca
-                                                        else cantidadDeTesorosVistosLlegaAN n ca + cantidadDeTesorosAca objs
+alMenosNTesoro :: Int -> Camino -> Bool
+alMenosNTesoro n (Fin)           = False
+alMenosNTesoro n (Nada ca)       = alMenosNTesoro n ca
+alMenosNTesoro n (Cofre objs ca) = if (n-(cantidadDeTesorosAca objs)) <= 0 
+                                    then True
+                                    else alMenosNTesoro (n-(cantidadDeTesorosAca objs)) ca
 
 cantidadDeTesorosAca :: [Objeto] -> Int
 cantidadDeTesorosAca []         = 0
@@ -320,3 +315,25 @@ simplificar (Sum e1 e2)        = Sum  (simplificar e1) (simplificar e2)
 simplificar (Prod e1 e2)       = Prod (simplificar e1) (simplificar e2)
 simplificar (Neg e)            = Neg  (simplificar e)
 simplificar x                  = x
+
+simplif :: ExpA -> ExpA
+simplif (Valor n)        = (Valor n)
+simplif (Sum ex1 ex2)    = siAlgunaExpresionEsCeroDevuelvoLaOtra (simplif ex1) (simplif ex2)
+simplif (Prod ex1 ex2)   = simplificarMultiplicacionSiSePuede (simplif ex1) (simplif ex2)
+simplif (Neg ex)         = siYaEsNegativaLaSimplifico ex
+
+siAlgunaExpresionEsCeroDevuelvoLaOtra :: ExpA -> ExpA -> ExpA
+siAlgunaExpresionEsCeroDevuelvoLaOtra (Valor 0) ex2         = ex2
+siAlgunaExpresionEsCeroDevuelvoLaOtra ex1       (Valor 0)   = ex1
+siAlgunaExpresionEsCeroDevuelvoLaOtra ex1       ex2         = (Sum ex1 ex2)
+
+simplificarMultiplicacionSiSePuede :: ExpA -> ExpA -> ExpA
+simplificarMultiplicacionSiSePuede (Valor 0) ex2       = (Valor 0) 
+simplificarMultiplicacionSiSePuede ex1       (Valor 0) = (Valor 0)
+simplificarMultiplicacionSiSePuede (Valor 1) ex2       = ex2
+simplificarMultiplicacionSiSePuede ex1       (Valor 1) = ex1
+simplificarMultiplicacionSiSePuede ex1       ex2       = (Prod ex1 ex2)
+
+siYaEsNegativaLaSimplifico :: ExpA -> ExpA
+siYaEsNegativaLaSimplifico (Neg x) = simplif x
+siYaEsNegativaLaSimplifico ex      = (Neg (simplif ex))
