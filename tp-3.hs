@@ -303,19 +303,6 @@ eval (Neg ex)       = -eval(ex)
 
 -- PUNTO 2.2.2:
 
-simplificar :: ExpA -> ExpA
-simplificar (Sum (Valor 0) x)  = simplificar x 
-simplificar (Sum x (Valor 0))  = simplificar x
-simplificar (Prod (Valor 0) x) = Valor 0 
-simplificar (Prod x (Valor 0)) = Valor 0
-simplificar (Prod (Valor 1) x) = simplificar x
-simplificar (Prod x (Valor 1)) = simplificar x
-simplificar (Neg (Neg x) )     = simplificar x
-simplificar (Sum e1 e2)        = Sum  (simplificar e1) (simplificar e2)
-simplificar (Prod e1 e2)       = Prod (simplificar e1) (simplificar e2)
-simplificar (Neg e)            = Neg  (simplificar e)
-simplificar x                  = x
-
 simplif :: ExpA -> ExpA
 simplif (Valor n)        = (Valor n)
 simplif (Sum ex1 ex2)    = siAlgunaExpresionEsCeroDevuelvoLaOtra (simplif ex1) (simplif ex2)
