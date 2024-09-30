@@ -40,7 +40,7 @@ aplanar (x:xs) = x ++ aplanar xs
 -- PUNTO 7:
 
 pertenece :: Eq a => a -> [a] -> Bool
-pertenece _ [] = False
+pertenece _ []     = False
 pertenece t (x:xs) = (t == x) || pertenece t xs
 
 -- PUNTO 8:
