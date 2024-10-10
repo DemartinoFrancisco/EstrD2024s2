@@ -3,6 +3,19 @@
 -- o sea, la funcion tendria un costo 0(n.log(n)), siendo n el largo de la lista.
 
 -- PUNTO 2 : Hecho en papel
+esBST :: Tree a -> Bool                                                                            -- O(n)
+esBST EmptyT          = True
+esBST (NodeT x ti td) = (cumpleBST x ti td) && (esBST ti) && (esBST td)
+
+cumpleBST :: Ord a => a -> Tree a -> Tree a -> Bool                                                -- O(1)
+cumpleBST x EmptyT EmptyT = True
+cumpleBST x ti     EmptyT = x > root ti
+cumpleBST x EmptyT td     = x < root td
+cumpleBST x ti     td     = (x > root ti) && (x < root td)
+
+root :: Tree a -> a                                                                                -- O(1)
+-- PRECOND.: El arbol no puede ser vacio.
+root (NodeT x _ _) = x
 
 -- PUNTO 3 :
 
