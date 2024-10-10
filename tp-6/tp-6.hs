@@ -67,7 +67,7 @@ map2 = assocM 2 3 (assocM 10 7 (emptyM))
 
 
 
-mergeMaps:: Eq k => Map k v -> Map k v -> Map k v                                                  -- O(n^2)
+mergeMaps :: Eq k => Map k v -> Map k v -> Map k v                                                  -- O(n^2)
 mergeMaps map1 map2 = if esAsociacionSinClaves map1 
                             then map2
                             else agregarClavesDeA map1 map2
